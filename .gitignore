@@ -9,3 +9,4 @@ demo/*.mkv
 # Serve output
 node_modules/
 .cache/
+.claude/settings.local.json
