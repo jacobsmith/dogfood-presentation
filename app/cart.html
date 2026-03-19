@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart — ShopLab</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">ShopLab</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Shop</a></li>
+      <li><a href="cart.html">Cart (<span id="cart-count">0</span>)</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Your Cart</h1>
+    <div id="cart-empty" class="hidden">
+      <p>Your cart is empty. <a href="index.html">Keep shopping</a></p>
+    </div>
+    <div id="cart-content">
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="cart-items"></tbody>
+      </table>
+
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="subtotal">$0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Tax (8%)</span>
+          <span id="tax">$0.00</span>
+        </div>
+        <div class="summary-row total-row">
+          <span>Total</span>
+          <span id="total">$0.00</span>
+        </div>
+        <button class="btn btn-primary checkout-btn" id="checkout-btn">Proceed to Checkout</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 ShopLab. All rights reserved.</p>
+  </footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+</body>
+</html>

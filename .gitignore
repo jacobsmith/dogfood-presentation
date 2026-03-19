@@ -1,0 +1,11 @@
+# Demo recordings (too large for git — host separately)
+demo/*.mp4
+demo/*.mov
+demo/*.mkv
+
+# OS
+.DS_Store
+
+# Serve output
+node_modules/
+.cache/

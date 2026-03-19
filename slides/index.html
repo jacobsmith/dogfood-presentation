@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Let Claude Break Your App — /dogfood</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/moon.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+  <style>
+    :root {
+      --accent: #60a5fa;
+      --accent2: #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+    }
+
+    .reveal { font-size: 1.8rem; }
+    .reveal h1 { font-size: 1.9em; line-height: 1.1; }
+    .reveal h2 { font-size: 1.3em; color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 0.3em; margin-bottom: 0.6em; }
+    .reveal h3 { font-size: 1em; color: var(--accent2); }
+    .reveal pre { font-size: 0.55em; }
+    .reveal code { font-family: 'Fira Code', 'Cascadia Code', monospace; }
+    .reveal .slides section { text-align: left; }
+    .reveal .slides section.center-slide { text-align: center; }
+
+    .tag {
+      display: inline-block;
+      background: rgba(96,165,250,0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0.1em 0.5em;
+      border-radius: 4px;
+      font-size: 0.7em;
+      font-family: monospace;
+      vertical-align: middle;
+    }
+
+    .tag.green {
+      background: rgba(52,211,153,0.15);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .tag.yellow {
+      background: rgba(251,191,36,0.15);
+      border-color: var(--warn);
+      color: var(--warn);
+    }
+
+    .tag.red {
+      background: rgba(248,113,113,0.15);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.65em;
+    }
+
+    .comparison-table th {
+      background: rgba(255,255,255,0.08);
+      padding: 0.5em 0.75em;
+      text-align: left;
+      border-bottom: 2px solid rgba(255,255,255,0.15);
+    }
+
+    .comparison-table td {
+      padding: 0.45em 0.75em;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      vertical-align: top;
+    }
+
+    .comparison-table tr:hover td {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .good { color: var(--accent2); }
+    .bad  { color: var(--danger); }
+    .ok   { color: var(--warn); }
+
+    .token-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75em;
+      margin: 1em 0;
+    }
+
+    .token-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+      font-size: 0.65em;
+    }
+
+    .token-bar-label {
+      width: 220px;
+      flex-shrink: 0;
+      color: #d1d5db;
+    }
+
+    .token-bar {
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #fff;
+      min-width: 40px;
+    }
+
+    .token-bar.a { background: var(--danger); }
+    .token-bar.b { background: var(--warn); }
+    .token-bar.c { background: var(--accent2); }
+
+    .wireframe {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1em 1.25em;
+      font-family: monospace;
+      font-size: 0.5em;
+      line-height: 1.6;
+      color: #e6edf3;
+      white-space: pre;
+    }
+
+    .wireframe .ref { color: var(--accent); }
+    .wireframe .label { color: var(--accent2); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5em;
+      align-items: start;
+    }
+
+    .callout {
+      background: rgba(96,165,250,0.1);
+      border-left: 4px solid var(--accent);
+      padding: 0.75em 1em;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.7em;
+      margin-top: 1em;
+    }
+
+    .callout.green {
+      background: rgba(52,211,153,0.1);
+      border-color: var(--accent2);
+    }
+
+    .step-list {
+      list-style: none;
+      counter-reset: steps;
+      font-size: 0.7em;
+    }
+
+    .step-list li {
+      counter-increment: steps;
+      padding: 0.4em 0 0.4em 2.5em;
+      position: relative;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .step-list li::before {
+      content: counter(steps);
+      position: absolute;
+      left: 0;
+      top: 0.4em;
+      background: var(--accent);
+      color: #0f172a;
+      width: 1.6em;
+      height: 1.6em;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9em;
+    }
+
+    .subtitle { color: #94a3b8; font-size: 0.6em; margin-top: 0.5em; }
+    .speaker-note-hint { color: #4b5563; font-size: 0.4em; font-style: italic; }
+
+    .big-stat {
+      font-size: 2.5em;
+      font-weight: 800;
+      color: var(--accent2);
+      line-height: 1;
+    }
+
+    .demo-slide-bg {
+      background: radial-gradient(ellipse at center, #1e3a5f 0%, #0f172a 70%);
+    }
+  </style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ── TITLE ── -->
+    <section class="center-slide">
+      <h1>Let Claude<br>Break Your App</h1>
+      <p class="subtitle">Automated QA with <code>/dogfood</code> + <code>agent-browser</code></p>
+      <p style="margin-top:2em; font-size:0.5em; color:#6b7280;">
+        vercel-labs/agent-browser &nbsp;·&nbsp; github.com/[your-handle]/dogfood-presentation
+      </p>
+    </section>
+
+    <!-- ── THE HOOK ── -->
+    <section>
+      <h2>Who's testing your code?</h2>
+      <ul style="font-size:0.7em; line-height:2;">
+        <li>You ship a feature Friday afternoon</li>
+        <li>Your PR passes CI</li>
+        <li>It passes code review</li>
+        <li class="fragment">…does anyone click through it before it ships?</li>
+      </ul>
+      <div class="fragment callout">
+        Manual QA is the first thing that gets skipped under deadline pressure.
+        It's not laziness — it's math.
+      </div>
+    </section>
+
+    <section>
+      <h2>What if Claude did it?</h2>
+      <p style="font-size:0.7em;">Claude Code can already browse the web. So can we just ask it to QA our app?</p>
+      <pre class="fragment"><code class="language-bash">claude "Please test my app at http://localhost:3000 and find any bugs"</code></pre>
+      <div class="fragment callout">
+        You can. But <em>how</em> it browses matters enormously — for reliability, cost, and whether it finishes at all.
+      </div>
+    </section>
+
+    <!-- ── BROWSER LANDSCAPE ── -->
+    <section>
+      <h2>Browser automation in Claude Code</h2>
+      <p style="font-size:0.65em; color:#94a3b8; margin-bottom:0.75em;">Three main approaches today:</p>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>How it sees pages</th>
+            <th>Install</th>
+            <th>Headless/CI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Native Chrome tool</strong> <span class="tag">1st party</span></td>
+            <td>Accessibility tree + screenshots</td>
+            <td>Chrome extension + paid plan</td>
+            <td class="bad">✗</td>
+          </tr>
+          <tr>
+            <td><strong>Playwright MCP</strong> <span class="tag yellow">3rd party</span></td>
+            <td>Full accessibility tree</td>
+            <td><code>npm i @playwright/mcp</code></td>
+            <td class="good">✓</td>
+          </tr>
+          <tr>
+            <td><strong>agent-browser</strong> <span class="tag green">3rd party</span></td>
+            <td>ASCII wireframe + element refs</td>
+            <td><code>npm i agent-browser</code></td>
+            <td class="good">✓</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── THE TOKEN PROBLEM ── -->
+    <section>
+      <h2>The token problem</h2>
+      <p style="font-size:0.7em;">Every browser interaction costs context. On a long QA run, that adds up fast.</p>
+      <div class="token-bar-wrap fragment">
+        <div class="token-bar-row">
+          <div class="token-bar-label">Native Chrome (screenshot)</div>
+          <div class="token-bar a" style="width:75%;">~10,000+ tokens/page</div>
+        </div>
+        <div class="token-bar-row">
+          <div class="token-bar-label">Playwright MCP (a11y tree)</div>
+          <div class="token-bar b" style="width:55%;">~10,000 tokens/page</div>
+        </div>
+        <div class="token-bar-row">
+          <div class="token-bar-label">agent-browser (wireframe)</div>
+          <div class="token-bar c" style="width:18%;">~1,000–3,000/page</div>
+        </div>
+      </div>
+      <div class="fragment callout green" style="margin-top:1em;">
+        <strong>70–93% fewer tokens per interaction.</strong><br>
+        That's the difference between a task that completes and one that hits the context limit mid-run.
+      </div>
+    </section>
+
+    <section>
+      <h2>Why screenshots explode context</h2>
+      <div class="two-col">
+        <div>
+          <h3>Screenshot approach</h3>
+          <ul style="font-size:0.6em; line-height:1.9;">
+            <li>Each screenshot: <strong>1,000–5,000 tokens</strong></li>
+            <li>Persists in context for every subsequent turn</li>
+            <li>10 pages = 10 screenshots stacked up</li>
+            <li>Model must re-parse pixels to find elements</li>
+            <li>Fails gracefully… then abruptly</li>
+          </ul>
+        </div>
+        <div class="fragment">
+          <h3>Wireframe approach</h3>
+          <ul style="font-size:0.6em; line-height:1.9;">
+            <li>ASCII text: <strong>~500–1,500 tokens</strong></li>
+            <li>Element refs are stable across the session</li>
+            <li>No image data in context at all</li>
+            <li>Model acts on refs directly</li>
+            <li>Predictable cost per interaction</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── HOW AGENT-BROWSER WORKS ── -->
+    <section>
+      <h2>How agent-browser sees a page</h2>
+      <p style="font-size:0.65em; color:#94a3b8;">Instead of a screenshot, the model gets this:</p>
+      <div class="wireframe">
+<span class="label">[ ShopLab — Developer Tools Store ]</span>
+
+Nav: <span class="ref">@e1</span> ShopLab  <span class="ref">@e2</span> Shop  <span class="ref">@e3</span> Cart (0)  <span class="ref">@e4</span> Blog  <span class="ref">@e5</span> Contact
+
+<span class="label">[ Hero ]</span>
+  Developer Tools, Shipped Fast
+  Everything you need to build better software.
+  [input <span class="ref">@e6</span> placeholder="Search products..."] [button <span class="ref">@e7</span> "Search"]
+
+<span class="label">[ Featured Products ]</span>
+  Terminal Pro License  $49.00
+  [button <span class="ref">@e8</span> "Add to Cart"] [button <span class="ref">@e9</span> "Quick View"]
+
+  API Monitor  $29.00
+  [button <span class="ref">@e10</span> "Add to Cart"] [button <span class="ref">@e11</span> "Quick View"]
+      </div>
+    </section>
+
+    <section>
+      <h2>Acting on refs</h2>
+      <p style="font-size:0.65em; color:#94a3b8; margin-bottom:0.75em;">The model uses stable refs to interact — no fragile CSS selectors or XPath:</p>
+      <pre><code class="language-bash"># Navigate and snapshot
+agent-browser open https://localhost:3000
+agent-browser snapshot -i              # get interactive wireframe
+
+# Interact by ref
+agent-browser click @e4               # click "Blog" nav link
+agent-browser fill @e6 "terminal"     # fill search input
+agent-browser click @e7               # click Search
+
+# Capture evidence
+agent-browser screenshot --annotate   # annotated screenshot
+agent-browser errors                  # read console errors
+agent-browser record                  # record a repro video</code></pre>
+    </section>
+
+    <!-- ── DOGFOOD SKILL ── -->
+    <section>
+      <h2>The /dogfood skill</h2>
+      <p style="font-size:0.65em;">Skills are agent instructions packaged as a <code>SKILL.md</code> file. Claude loads them on demand.</p>
+      <div class="two-col" style="margin-top:0.75em;">
+        <div>
+          <h3>Install</h3>
+          <pre style="font-size:0.5em;"><code class="language-bash">npm i -g agent-browser
+npx skills add \
+  vercel-labs/agent-browser \
+  --skill dogfood</code></pre>
+        </div>
+        <div>
+          <h3>Use</h3>
+          <pre style="font-size:0.5em;"><code class="language-bash">/dogfood https://your-app.com</code></pre>
+        </div>
+      </div>
+      <div class="fragment callout" style="margin-top:0.75em; font-size:0.6em;">
+        Works in Claude Code, Cursor, GitHub Copilot, Cline, and 15+ other agents — skills are agent-agnostic.
+      </div>
+    </section>
+
+    <section>
+      <h2>What's inside SKILL.md</h2>
+      <p style="font-size:0.65em; color:#94a3b8; margin-bottom:0.5em;">Two parts: frontmatter (when to trigger) + body (what to do)</p>
+      <pre><code class="language-yaml">---
+name: dogfood
+description: >
+  Systematically explores and QA tests a live web application.
+  Opens a browser, navigates pages, fills forms, clicks buttons,
+  captures screenshots and console errors, and writes a structured
+  bug report with repro steps and evidence.
+triggers:
+  - /dogfood
+---</code></pre>
+      <pre class="fragment"><code class="language-markdown"># Dogfood QA Agent
+
+You are a systematic QA engineer. Given a URL, you will:
+1. Open a browser session with `agent-browser open {URL}`
+2. Get a snapshot: `agent-browser snapshot -i`
+3. Navigate every linked page. On each page:
+   - Fill and submit all forms with realistic data
+   - Click all interactive elements
+   - Read console errors: `agent-browser errors`
+   - Capture screenshots of any anomalies
+4. For each issue found, retry at least once to confirm it's reproducible
+5. Write a markdown bug report to ./dogfood-report.md
+...</code></pre>
+    </section>
+
+    <section>
+      <h2>What /dogfood does in practice</h2>
+      <ol class="step-list">
+        <li>Opens a browser session and orients on the starting URL</li>
+        <li>Maps the site structure — all nav links and primary routes</li>
+        <li>Exercises every interactive element: forms, buttons, inputs</li>
+        <li>Uses realistic-looking data (not "aaa", "test@test.com")</li>
+        <li>Reads the console errors log after each interaction</li>
+        <li>Takes annotated screenshots for anything suspicious</li>
+        <li>Retries each potential bug to confirm reproducibility</li>
+        <li>Writes a structured markdown report with repro steps + evidence</li>
+      </ol>
+    </section>
+
+    <!-- ── LIVE DEMO ── -->
+    <section class="center-slide demo-slide-bg">
+      <h2 style="border:none; color:#60a5fa;">Live Demo</h2>
+      <p style="font-size:0.7em; color:#94a3b8; margin-top:1em;">
+        Pointing <code>/dogfood</code> at ShopLab —<br>
+        a deliberately-broken e-commerce app.
+      </p>
+      <div style="margin-top:2em; font-size:0.55em; color:#4b5563;">
+        <code>cd dogfood-presentation/app && npx serve .</code><br>
+        <code>/dogfood http://localhost:3000</code>
+      </div>
+      <p style="margin-top:2em; font-size:0.5em; color:#4b5563; font-style:italic;">
+        (backup recording available if live demo misbehaves)
+      </p>
+    </section>
+
+    <!-- ── BUGS WE PLANTED ── -->
+    <section>
+      <h2>What it should find</h2>
+      <table class="comparison-table">
+        <thead>
+          <tr><th>Bug</th><th>Type</th><th>Why it matters</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cart total doesn't update on qty change</td>
+            <td><span class="tag red">Logic</span></td>
+            <td>Users see wrong price until refresh</td>
+          </tr>
+          <tr>
+            <td>Contact form ignores the message field</td>
+            <td><span class="tag red">Silent failure</span></td>
+            <td>Messages silently dropped</td>
+          </tr>
+          <tr>
+            <td>"Blog" nav link 404s</td>
+            <td><span class="tag yellow">Broken nav</span></td>
+            <td>Visible dead end for every visitor</td>
+          </tr>
+          <tr>
+            <td>"Quick View" button throws JS error</td>
+            <td><span class="tag red">Console error</span></td>
+            <td>No UI feedback — only visible in DevTools</td>
+          </tr>
+          <tr>
+            <td>Single-char search returns no results</td>
+            <td><span class="tag yellow">Edge case</span></td>
+            <td>Looks like "no results" — actually a bug</td>
+          </tr>
+          <tr>
+            <td>Nav overflows at 375px mobile width</td>
+            <td><span class="tag yellow">Responsive</span></td>
+            <td>Broken layout on iPhone SE and similar</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── TOKEN COMPARISON SLIDE ── -->
+    <section>
+      <h2>Token usage: by the numbers</h2>
+      <p style="font-size:0.65em; color:#94a3b8;">Same task. Same app. Different tools.</p>
+      <table class="comparison-table fragment" style="margin-top:0.75em;">
+        <thead>
+          <tr>
+            <th>Approach</th>
+            <th>Input tokens</th>
+            <th>Output tokens</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Native Chrome tool</td>
+            <td id="native-input">[ run to fill ]</td>
+            <td id="native-output">[ run to fill ]</td>
+            <td id="native-total">[ run to fill ]</td>
+          </tr>
+          <tr>
+            <td>/dogfood + agent-browser</td>
+            <td id="df-input">[ run to fill ]</td>
+            <td id="df-output">[ run to fill ]</td>
+            <td id="df-total">[ run to fill ]</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout fragment" style="margin-top:1em; font-size:0.6em;">
+        See <code>/token-comparison/README.md</code> for the exact methodology.
+      </div>
+    </section>
+
+    <!-- ── INSTALL + EXTEND ── -->
+    <section>
+      <h2>Get started in 2 minutes</h2>
+      <pre><code class="language-bash"># 1. Install agent-browser
+npm i -g agent-browser
+
+# 2. Add the dogfood skill to Claude Code
+npx skills add vercel-labs/agent-browser --skill dogfood
+
+# 3. Run against your app
+/dogfood https://your-staging-url.com</code></pre>
+      <div class="callout green fragment" style="font-size:0.6em; margin-top:1em;">
+        The skill runs in your Claude Code session — no separate service, no API key beyond your existing Claude plan.
+      </div>
+    </section>
+
+    <section>
+      <h2>Build your own skill</h2>
+      <p style="font-size:0.65em; color:#94a3b8;">Skills are just markdown. Any agent can load them.</p>
+      <pre><code class="language-bash">my-skill/
+├── SKILL.md      # frontmatter + instructions
+└── README.md     # optional docs</code></pre>
+      <pre class="fragment"><code class="language-yaml">---
+name: accessibility-audit
+description: >
+  Runs an accessibility audit on a web page using agent-browser.
+  Checks for missing alt text, color contrast, ARIA labels, and
+  keyboard navigability. Writes a WCAG 2.1 compliance report.
+triggers:
+  - /a11y
+---
+
+# Your instructions here...
+</code></pre>
+      <div class="fragment callout" style="font-size:0.6em; margin-top:0.75em;">
+        Publish to the skills registry: <code>npx skills publish</code>
+      </div>
+    </section>
+
+    <!-- ── TAKEAWAYS ── -->
+    <section>
+      <h2>Key takeaways</h2>
+      <ul style="font-size:0.7em; line-height:2.2;">
+        <li><strong>agent-browser</strong> uses ASCII wireframes + element refs — not screenshots</li>
+        <li>This makes multi-step browser tasks <strong>70–93% cheaper</strong> in context</li>
+        <li><strong>/dogfood</strong> is a skill built on top — point it at any URL</li>
+        <li>Skills are agent-agnostic, shareable, and composable</li>
+        <li>The bug report it writes is <strong>ready to paste into your issue tracker</strong></li>
+      </ul>
+    </section>
+
+    <!-- ── END ── -->
+    <section class="center-slide">
+      <h2 style="border:none;">Questions?</h2>
+      <p style="font-size:0.6em; color:#94a3b8; margin-top:1.5em;">
+        Repo: <code>github.com/[your-handle]/dogfood-presentation</code><br>
+        Skill: <code>github.com/vercel-labs/agent-browser</code>
+      </p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    controls: true,
+    progress: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    plugins: [ RevealHighlight, RevealNotes ]
+  });
+</script>
+</body>
+</html>

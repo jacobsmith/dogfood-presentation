@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopLab — Developer Tools Store</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">ShopLab</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Shop</a></li>
+      <li><a href="cart.html">Cart (<span id="cart-count">0</span>)</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <div class="hero">
+      <h1>Developer Tools, Shipped Fast</h1>
+      <p>Everything you need to build better software.</p>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search products..." />
+        <button id="search-btn">Search</button>
+      </div>
+    </div>
+
+    <div id="search-results" class="hidden">
+      <h2>Search Results</h2>
+      <div id="results-grid" class="product-grid"></div>
+    </div>
+
+    <section>
+      <h2>Featured Products</h2>
+      <div class="product-grid" id="product-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 ShopLab. All rights reserved.</p>
+  </footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
