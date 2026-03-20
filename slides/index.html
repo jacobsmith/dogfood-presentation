@@ -273,51 +273,42 @@
 
     <!-- ── THE TOKEN PROBLEM ── -->
     <section>
-      <h2>The token problem</h2>
-      <p style="font-size:0.7em;">Every browser interaction costs context. On a long QA run, that adds up fast.</p>
-      <div class="token-bar-wrap fragment">
-        <div class="token-bar-row">
-          <div class="token-bar-label">Native Chrome (screenshot)</div>
-          <div class="token-bar a" style="width:75%;">~10,000+ tokens/page</div>
-        </div>
-        <div class="token-bar-row">
-          <div class="token-bar-label">Playwright MCP (a11y tree)</div>
-          <div class="token-bar b" style="width:55%;">~10,000 tokens/page</div>
-        </div>
-        <div class="token-bar-row">
-          <div class="token-bar-label">agent-browser (wireframe)</div>
-          <div class="token-bar c" style="width:18%;">~1,000–3,000/page</div>
-        </div>
-      </div>
-      <div class="fragment callout green" style="margin-top:1em;">
-        <strong>70–93% fewer tokens per interaction.</strong><br>
-        That's the difference between a task that completes and one that hits the context limit mid-run.
-      </div>
-    </section>
-
-    <section>
-      <h2>Why screenshots explode context</h2>
-      <div class="two-col">
-        <div>
-          <h3>Screenshot approach</h3>
-          <ul style="font-size:0.6em; line-height:1.9;">
-            <li>Each screenshot: <strong>1,000–5,000 tokens</strong></li>
-            <li>Persists in context for every subsequent turn</li>
-            <li>10 pages = 10 screenshots stacked up</li>
-            <li>Model must re-parse pixels to find elements</li>
-            <li>Fails gracefully… then abruptly</li>
-          </ul>
-        </div>
-        <div class="fragment">
-          <h3>Wireframe approach</h3>
-          <ul style="font-size:0.6em; line-height:1.9;">
-            <li>ASCII text: <strong>~500–1,500 tokens</strong></li>
-            <li>Element refs are stable across the session</li>
-            <li>No image data in context at all</li>
-            <li>Model acts on refs directly</li>
-            <li>Predictable cost per interaction</li>
-          </ul>
-        </div>
+      <h2>Efficiency = coverage</h2>
+      <p style="font-size:0.65em; color:#94a3b8;">We ran both tools against the same app. Same time. Same bugs. Very different depth.</p>
+      <table class="comparison-table fragment" style="margin-top:0.75em;">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Native Chrome</th>
+            <th>/dogfood</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Total tokens</td>
+            <td>~51k</td>
+            <td>~64k</td>
+          </tr>
+          <tr>
+            <td>Pages visited</td>
+            <td class="bad">11</td>
+            <td class="good">21</td>
+          </tr>
+          <tr>
+            <td>Tokens per navigation</td>
+            <td class="bad">~4,600</td>
+            <td class="good">~3,000</td>
+          </tr>
+          <tr>
+            <td>Repro evidence</td>
+            <td class="bad">none</td>
+            <td class="good">28 screenshots · 7 videos</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout green fragment" style="margin-top:1em; font-size:0.65em;">
+        Lower cost per step meant <strong>2× more exploration</strong> in the same context budget —
+        plus full repro evidence at no extra navigation cost.
       </div>
     </section>
 
@@ -435,53 +426,110 @@ You are a systematic QA engineer. Given a URL, you will:
       </p>
       <div style="margin-top:2em; font-size:0.55em; color:#4b5563;">
         <code>cd dogfood-presentation/app && npx serve .</code><br>
-        <code>/dogfood http://localhost:3000</code>
+        <code>/dogfood http://localhost:3000/app/</code>
       </div>
       <p style="margin-top:2em; font-size:0.5em; color:#4b5563; font-style:italic;">
         (backup recording available if live demo misbehaves)
       </p>
     </section>
 
+    <!-- ── DOGFOOD REPORT ── -->
+    <section>
+      <h2>The report it wrote</h2>
+      <iframe
+        src="http://localhost:3000/dogfood-output/index.html"
+        style="width:100%; height:72vh; border:1px solid #30363d; border-radius:6px;"
+        scrolling="yes"
+      ></iframe>
+    </section>
+
     <!-- ── BUGS WE PLANTED ── -->
     <section>
-      <h2>What it should find</h2>
+      <h2>What both tools found</h2>
       <table class="comparison-table">
         <thead>
-          <tr><th>Bug</th><th>Type</th><th>Why it matters</th></tr>
+          <tr><th>Bug</th><th>Type</th><th>Native Chrome</th><th>/dogfood</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td>Cart total doesn't update on qty change</td>
+            <td>Cart total frozen on qty change</td>
             <td><span class="tag red">Logic</span></td>
-            <td>Users see wrong price until refresh</td>
+            <td class="good">✓</td>
+            <td class="good">✓</td>
           </tr>
           <tr>
-            <td>Contact form ignores the message field</td>
+            <td>Contact form ignores message field</td>
             <td><span class="tag red">Silent failure</span></td>
-            <td>Messages silently dropped</td>
+            <td class="good">✓</td>
+            <td class="good">✓</td>
           </tr>
           <tr>
             <td>"Blog" nav link 404s</td>
             <td><span class="tag yellow">Broken nav</span></td>
-            <td>Visible dead end for every visitor</td>
+            <td class="good">✓</td>
+            <td class="good">✓</td>
           </tr>
           <tr>
-            <td>"Quick View" button throws JS error</td>
+            <td>"Quick View" throws JS error</td>
             <td><span class="tag red">Console error</span></td>
-            <td>No UI feedback — only visible in DevTools</td>
+            <td class="good">✓</td>
+            <td class="good">✓</td>
           </tr>
           <tr>
-            <td>Single-char search returns no results</td>
+            <td>Single-char search returns nothing</td>
             <td><span class="tag yellow">Edge case</span></td>
-            <td>Looks like "no results" — actually a bug</td>
+            <td class="good">✓</td>
+            <td class="good">✓</td>
           </tr>
           <tr>
-            <td>Nav overflows at 375px mobile width</td>
+            <td>Asset 404s on every page load</td>
+            <td><span class="tag yellow">Console</span></td>
+            <td class="good">✓</td>
+            <td class="good">✓</td>
+          </tr>
+          <tr>
+            <td>Nav overflow at 375px mobile width</td>
             <td><span class="tag yellow">Responsive</span></td>
-            <td>Broken layout on iPhone SE and similar</td>
+            <td class="bad">✗</td>
+            <td class="bad">✗</td>
           </tr>
         </tbody>
       </table>
+      <div class="callout" style="margin-top:0.75em; font-size:0.6em;">
+        The mobile layout bug was not caught by either tool — a reminder that automated QA doesn't replace responsive testing.
+      </div>
+    </section>
+
+    <!-- ── REPORT COMPARISON ── -->
+    <section>
+      <h2>Same bug, different report</h2>
+      <p style="font-size:0.6em; color:#94a3b8; margin-bottom:0.75em;">Cart total frozen on qty change — as reported by each tool.</p>
+      <div class="two-col" style="font-size:0.55em; gap:1em;">
+        <div>
+          <h3 style="margin-bottom:0.5em;">Native Chrome</h3>
+          <div class="description" style="font-size:1em; line-height:1.7;">
+            <strong>Bug 4 — Cart total doesn't update when quantity changes</strong><br><br>
+            With Terminal Pro License at qty=3, the per-item subtotal correctly shows $147.00, but the order total remains stuck at $52.92 (the initial qty=1 value including 8% tax).
+            <code>changeQty()</code> updates the row subtotal but never calls <code>updateTotals()</code>.
+            Only a full page refresh recalculates the total. <code>(cart.js:66)</code><br><br>
+            <em>Bonus: The 8% tax is added silently — no tax line is shown to the user until the checkout summary.</em>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin-bottom:0.5em;">/dogfood</h3>
+          <div class="description" style="font-size:1em; line-height:1.7;">
+            <strong>ISSUE-003 · Critical · functional</strong><br>
+            <em>URL: localhost:3000/app/cart.html · Repro video attached</em><br><br>
+            When increasing item quantity in the cart, the per-row subtotal updates correctly (3 × $49.00 = $147.00), but the order summary section stays frozen at the original single-unit values ($49.00 / $3.92 / $52.92). A customer would be shown $52.92 at checkout but should see $158.76.<br><br>
+            <strong>Steps:</strong> Add Terminal Pro License → go to cart → click + twice → observe order summary unchanged.<br>
+            <em>4 screenshots · 1 repro video · confirmed reproducible.</em>
+          </div>
+        </div>
+      </div>
+      <div class="callout fragment" style="margin-top:0.75em; font-size:0.6em;">
+        Chrome found the source line immediately (<code>cart.js:66</code>) and a bonus tax UX issue.
+        /dogfood produced a hand-off-ready report with repro evidence — no DevTools required.
+      </div>
     </section>
 
     <!-- ── TOKEN COMPARISON SLIDE ── -->
@@ -492,28 +540,34 @@ You are a systematic QA engineer. Given a URL, you will:
         <thead>
           <tr>
             <th>Approach</th>
-            <th>Input tokens</th>
-            <th>Output tokens</th>
-            <th>Total</th>
+            <th>Total tokens</th>
+            <th>Navigations</th>
+            <th>Tokens / nav</th>
+            <th>Evidence</th>
+            <th>Bugs</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Native Chrome tool</td>
-            <td id="native-input">[ run to fill ]</td>
-            <td id="native-output">[ run to fill ]</td>
-            <td id="native-total">[ run to fill ]</td>
+            <td>~51k</td>
+            <td>11</td>
+            <td class="bad">~4,600</td>
+            <td>0 screenshots<br>0 videos</td>
+            <td>6</td>
           </tr>
           <tr>
             <td>/dogfood + agent-browser</td>
-            <td id="df-input">[ run to fill ]</td>
-            <td id="df-output">[ run to fill ]</td>
-            <td id="df-total">[ run to fill ]</td>
+            <td>~64k</td>
+            <td>21</td>
+            <td class="good">~3,000</td>
+            <td>28 screenshots<br>7 videos</td>
+            <td>6</td>
           </tr>
         </tbody>
       </table>
       <div class="callout fragment" style="margin-top:1em; font-size:0.6em;">
-        See <code>/token-comparison/README.md</code> for the exact methodology.
+        /dogfood explored <strong>2× more pages</strong> and produced full repro evidence — at a <strong>lower per-interaction cost</strong>. Total tokens were higher because it did more work.
       </div>
     </section>
 
@@ -561,7 +615,7 @@ triggers:
       <h2>Key takeaways</h2>
       <ul style="font-size:0.7em; line-height:2.2;">
         <li><strong>agent-browser</strong> uses ASCII wireframes + element refs — not screenshots</li>
-        <li>This makes multi-step browser tasks <strong>70–93% cheaper</strong> in context</li>
+        <li>This makes each page interaction <strong>~35% cheaper</strong> — so longer runs stay within context</li>
         <li><strong>/dogfood</strong> is a skill built on top — point it at any URL</li>
         <li>Skills are agent-agnostic, shareable, and composable</li>
         <li>The bug report it writes is <strong>ready to paste into your issue tracker</strong></li>
