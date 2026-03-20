@@ -10,3 +10,4 @@ demo/*.mkv
 node_modules/
 .cache/
 .claude/settings.local.json
+dogfood-output/*

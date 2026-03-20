@@ -30,7 +30,9 @@ Claude's native Chrome integration uses screenshots and accessibility tree dumps
 Use this **exact prompt** for both runs. Do not modify it between runs — the goal is to keep the task identical so token differences are due to the tool, not the instructions.
 
 ```
-Please QA test the web app at http://localhost:3000.
+Please QA test the web app at http://localhost:3000/app/.
+
+Use the dogfood skill.
 
 Do the following:
 1. Visit the home page and take note of all navigation links
