@@ -71,3 +71,5 @@
 11 total navigations
 0 Screenshots
 0 Videos
+
+Utilized `javascript_tool` to interact with page and find selectors, etc.

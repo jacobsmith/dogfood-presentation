@@ -42,7 +42,7 @@
 
 ===
 
-11m 4s
+11m 4s (3m 48s spent blocked recording videos)
 ~64k tokens
 
 21 total navigations
