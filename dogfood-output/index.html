@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Report — ShopLab (localhost:3000/app)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1117;
+      color: #e1e4e8;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 24px 40px;
+    }
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #f0f6fc;
+    }
+    header .meta {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: #8b949e;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    header .meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* ── Summary bar ── */
+    .summary-bar {
+      display: flex;
+      gap: 12px;
+      padding: 20px 40px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      flex-wrap: wrap;
+    }
+    .badge {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .badge.critical { background: #3d0000; color: #ff6b6b; border: 1px solid #7d1a1a; }
+    .badge.high     { background: #2d1a00; color: #f0a500; border: 1px solid #6b4000; }
+    .badge.medium   { background: #002040; color: #58a6ff; border: 1px solid #1a4a7a; }
+    .badge.low      { background: #1a1f2a; color: #8b949e; border: 1px solid #30363d; }
+    .badge.total    { background: #1f2937; color: #e1e4e8; border: 1px solid #374151; }
+
+    /* ── Issue list ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .issue-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .issue-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px 24px;
+      border-bottom: 1px solid #30363d;
+      cursor: pointer;
+      user-select: none;
+    }
+    .issue-header:hover { background: #1c2129; }
+
+    .issue-number {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #8b949e;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      margin-top: 3px;
+    }
+
+    .issue-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #f0f6fc;
+      flex: 1;
+    }
+
+    .severity-pill {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .severity-pill.critical { background: #3d0000; color: #ff6b6b; border: 1px solid #7d1a1a; }
+    .severity-pill.high     { background: #2d1a00; color: #f0a500; border: 1px solid #6b4000; }
+    .severity-pill.medium   { background: #002040; color: #58a6ff; border: 1px solid #1a4a7a; }
+    .severity-pill.low      { background: #1a1f2a; color: #8b949e; border: 1px solid #30363d; }
+
+    .category-pill {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      background: #1f2937;
+      color: #8b949e;
+      border: 1px solid #30363d;
+      white-space: nowrap;
+    }
+
+    .chevron {
+      color: #8b949e;
+      font-size: 0.9rem;
+      transition: transform 0.2s;
+      margin-top: 2px;
+    }
+    .issue-card.open .chevron { transform: rotate(90deg); }
+
+    /* ── Issue body ── */
+    .issue-body {
+      display: none;
+      padding: 24px;
+      border-top: 1px solid #30363d;
+    }
+    .issue-card.open .issue-body { display: block; }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .meta-item {
+      background: #0f1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+    .meta-item .label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8b949e;
+      margin-bottom: 3px;
+    }
+    .meta-item .value {
+      font-size: 0.85rem;
+      color: #e1e4e8;
+      word-break: break-all;
+    }
+    .meta-item .value a { color: #58a6ff; text-decoration: none; }
+    .meta-item .value a:hover { text-decoration: underline; }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #8b949e;
+      margin-bottom: 8px;
+      margin-top: 20px;
+    }
+    .section-label:first-of-type { margin-top: 0; }
+
+    .description {
+      font-size: 0.9rem;
+      color: #c9d1d9;
+      line-height: 1.65;
+      background: #0f1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 14px 16px;
+    }
+    .description code {
+      background: #1f2937;
+      color: #f0a500;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.85em;
+    }
+
+    /* ── Repro steps ── */
+    .repro-steps {
+      list-style: none;
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .repro-step {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .step-num {
+      background: #1f2937;
+      border: 1px solid #30363d;
+      color: #8b949e;
+      font-size: 0.75rem;
+      font-weight: 700;
+      min-width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-content {
+      flex: 1;
+      font-size: 0.88rem;
+      color: #c9d1d9;
+    }
+    .step-content strong { color: #f0f6fc; }
+    .step-content code {
+      background: #1f2937;
+      color: #f0a500;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.85em;
+    }
+
+    /* ── Media ── */
+    .media-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .screenshot-thumb {
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #0f1117;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      max-width: 240px;
+    }
+    .screenshot-thumb:hover { border-color: #58a6ff; }
+    .screenshot-thumb img {
+      display: block;
+      width: 100%;
+      max-width: 240px;
+      height: auto;
+    }
+    .screenshot-thumb .thumb-label {
+      font-size: 0.72rem;
+      color: #8b949e;
+      padding: 5px 8px;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      text-align: center;
+    }
+
+    .video-block {
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #0f1117;
+      max-width: 480px;
+    }
+    .video-block video {
+      display: block;
+      width: 100%;
+    }
+    .video-block .video-label {
+      font-size: 0.72rem;
+      color: #8b949e;
+      padding: 5px 8px;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      text-align: center;
+    }
+
+    /* ── Lightbox ── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #lightbox.active { display: flex; }
+    #lightbox img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 6px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    #lightbox-close {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.7;
+    }
+    #lightbox-close:hover { opacity: 1; }
+
+    @media (max-width: 640px) {
+      header, .summary-bar, main { padding-left: 16px; padding-right: 16px; }
+      .issue-header { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>QA Report — ShopLab</h1>
+  <div class="meta">
+    <span>📅 2026-03-20</span>
+    <span>🌐 <a href="http://localhost:3000/app/" style="color:#58a6ff">localhost:3000/app</a></span>
+    <span>🔍 Full app — nav, search, cart, contact form, quick view, console</span>
+  </div>
+</header>
+
+<div class="summary-bar">
+  <span class="badge critical">1 Critical</span>
+  <span class="badge high">4 High</span>
+  <span class="badge medium">1 Medium</span>
+  <span class="badge low">0 Low</span>
+  <span class="badge total">6 Total</span>
+</div>
+
+<main>
+
+  <!-- ISSUE-003 -->
+  <div class="issue-card open" id="issue-003">
+    <div class="issue-header" onclick="toggle('issue-003')">
+      <span class="issue-number">ISSUE-003</span>
+      <span class="issue-title">Cart order summary totals do not update when quantity is changed</span>
+      <span class="severity-pill critical">Critical</span>
+      <span class="category-pill">functional</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="issue-body">
+      <div class="meta-grid">
+        <div class="meta-item"><div class="label">URL</div><div class="value"><a href="http://localhost:3000/app/cart.html">localhost:3000/app/cart.html</a></div></div>
+        <div class="meta-item"><div class="label">Repro Video</div><div class="value">issue-003-repro.webm</div></div>
+      </div>
+
+      <div class="section-label">Description</div>
+      <div class="description">
+        When increasing item quantity in the cart, the per-row "Subtotal" cell updates correctly (e.g., 3 × $49.00 = $147.00), but the order summary section (Subtotal, Tax, Total) remains frozen at the original single-unit values ($49.00 / $3.92 / $52.92). A customer would be shown the wrong total before proceeding to checkout — they'd see $52.92 but should see $158.76 (3 × $49.00 + 8% tax).
+      </div>
+
+      <div class="section-label">Repro Video</div>
+      <div class="media-row">
+        <div class="video-block">
+          <video controls>
+            <source src="http://localhost:3000/dogfood-output/videos/issue-003-repro.webm" type="video/webm">
+          </video>
+          <div class="video-label">issue-003-repro.webm</div>
+        </div>
+      </div>
+
+      <div class="section-label">Repro Steps</div>
+      <ol class="repro-steps">
+        <li class="repro-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            Navigate to localhost:3000/app/ and add "Terminal Pro License" ($49.00) to the cart
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-003-step-1.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-003-step-1.png" alt="Step 1">
+                <div class="thumb-label">issue-003-step-1.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            Navigate to the cart page — qty=1, row subtotal=$49.00, summary shows Subtotal $49.00 / Tax $3.92 / Total $52.92
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-003-step-2.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-003-step-2.png" alt="Step 2">
+                <div class="thumb-label">issue-003-step-2.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            Click "+" twice to increase quantity to 3 — the row subtotal updates to $147.00 correctly
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-003-step-3.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-003-step-3.png" alt="Step 3">
+                <div class="thumb-label">issue-003-step-3.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <strong>Observe:</strong> Summary section still shows Subtotal $49.00, Tax $3.92, Total $52.92 — NOT the expected $147.00 / $11.76 / $158.76
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-003-result.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-003-result.png" alt="Result">
+                <div class="thumb-label">issue-003-result.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ISSUE-001 -->
+  <div class="issue-card" id="issue-001">
+    <div class="issue-header" onclick="toggle('issue-001')">
+      <span class="issue-number">ISSUE-001</span>
+      <span class="issue-title">Blog nav link returns 404</span>
+      <span class="severity-pill high">High</span>
+      <span class="category-pill">functional</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="issue-body">
+      <div class="meta-grid">
+        <div class="meta-item"><div class="label">URL</div><div class="value"><a href="http://localhost:3000/app/">localhost:3000/app/</a></div></div>
+        <div class="meta-item"><div class="label">Repro Video</div><div class="value">issue-001-repro.webm</div></div>
+      </div>
+
+      <div class="section-label">Description</div>
+      <div class="description">
+        Clicking the "Blog" link in the top navigation returns a 404 "The requested path could not be found" error. The Blog page does not exist. Users clicking this prominent nav link hit a dead end with no way back (the 404 page has no navigation).
+      </div>
+
+      <div class="section-label">Repro Video</div>
+      <div class="media-row">
+        <div class="video-block">
+          <video controls>
+            <source src="http://localhost:3000/dogfood-output/videos/issue-001-repro.webm" type="video/webm">
+          </video>
+          <div class="video-label">issue-001-repro.webm</div>
+        </div>
+      </div>
+
+      <div class="section-label">Repro Steps</div>
+      <ol class="repro-steps">
+        <li class="repro-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            Navigate to localhost:3000/app/
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-001-step-1.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-001-step-1.png" alt="Step 1">
+                <div class="thumb-label">issue-001-step-1.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            Click "Blog" in the top navigation bar
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-001-step-2.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-001-step-2.png" alt="Step 2">
+                <div class="thumb-label">issue-001-step-2.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <strong>Observe:</strong> 404 error page is displayed — "The requested path could not be found"
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-001-result.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-001-result.png" alt="Result">
+                <div class="thumb-label">issue-001-result.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ISSUE-002 -->
+  <div class="issue-card" id="issue-002">
+    <div class="issue-header" onclick="toggle('issue-002')">
+      <span class="issue-number">ISSUE-002</span>
+      <span class="issue-title">Search returns no results for "a" despite all products matching</span>
+      <span class="severity-pill high">High</span>
+      <span class="category-pill">functional</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="issue-body">
+      <div class="meta-grid">
+        <div class="meta-item"><div class="label">URL</div><div class="value"><a href="http://localhost:3000/app/">localhost:3000/app/</a></div></div>
+        <div class="meta-item"><div class="label">Repro Video</div><div class="value">issue-002-repro.webm</div></div>
+      </div>
+
+      <div class="section-label">Description</div>
+      <div class="description">
+        Searching for the letter "a" returns "No results found." All 6 products in the store contain the letter "a" in their names (Terminal Pro License, API Monitor, Code Snippet Vault, Deploy Widget, Error Tracker Bundle, Dev Sticker Pack), so the search should return all of them. The search feature appears to be broken — it fails to match any products.
+      </div>
+
+      <div class="section-label">Repro Video</div>
+      <div class="media-row">
+        <div class="video-block">
+          <video controls>
+            <source src="http://localhost:3000/dogfood-output/videos/issue-002-repro.webm" type="video/webm">
+          </video>
+          <div class="video-label">issue-002-repro.webm</div>
+        </div>
+      </div>
+
+      <div class="section-label">Repro Steps</div>
+      <ol class="repro-steps">
+        <li class="repro-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            Navigate to localhost:3000/app/
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-002-step-1.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-002-step-1.png" alt="Step 1">
+                <div class="thumb-label">issue-002-step-1.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            Type "a" into the search box ("Search products...")
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-002-step-2.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-002-step-2.png" alt="Step 2">
+                <div class="thumb-label">issue-002-step-2.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            Click the "Search" button
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-002-step-3.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-002-step-3.png" alt="Step 3">
+                <div class="thumb-label">issue-002-step-3.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <strong>Observe:</strong> "No results found." is displayed under "Search Results" — all 6 products are still shown in "Featured Products" below, confirming products exist but search returned nothing
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-002-result.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-002-result.png" alt="Result">
+                <div class="thumb-label">issue-002-result.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ISSUE-004 -->
+  <div class="issue-card" id="issue-004">
+    <div class="issue-header" onclick="toggle('issue-004')">
+      <span class="issue-number">ISSUE-004</span>
+      <span class="issue-title">Contact form shows no feedback after submission (success or error)</span>
+      <span class="severity-pill high">High</span>
+      <span class="category-pill">ux</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="issue-body">
+      <div class="meta-grid">
+        <div class="meta-item"><div class="label">URL</div><div class="value"><a href="http://localhost:3000/app/contact.html">localhost:3000/app/contact.html</a></div></div>
+        <div class="meta-item"><div class="label">Repro Video</div><div class="value">issue-004-repro.webm</div></div>
+      </div>
+
+      <div class="section-label">Description</div>
+      <div class="description">
+        Submitting the contact form produces no visible feedback — no success message, no error message, no redirect. The form remains on screen with the entered values still in the fields, leaving the user unable to tell if their message was sent. Additionally, submitting with a blank "Message" field is accepted without any validation error, meaning required fields are not enforced.
+      </div>
+
+      <div class="section-label">Repro Video</div>
+      <div class="media-row">
+        <div class="video-block">
+          <video controls>
+            <source src="http://localhost:3000/dogfood-output/videos/issue-004-repro.webm" type="video/webm">
+          </video>
+          <div class="video-label">issue-004-repro.webm</div>
+        </div>
+      </div>
+
+      <div class="section-label">Repro Steps</div>
+      <ol class="repro-steps">
+        <li class="repro-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            Navigate to localhost:3000/app/contact.html
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/contact-step-1.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/contact-step-1.png" alt="Step 1">
+                <div class="thumb-label">contact-step-1.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            Fill in "Name" with "Jane Smith"
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/contact-step-2.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/contact-step-2.png" alt="Step 2">
+                <div class="thumb-label">contact-step-2.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            Fill in "Email" with "jane@example.com" — leave "Message" blank
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/contact-step-3.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/contact-step-3.png" alt="Step 3">
+                <div class="thumb-label">contact-step-3.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">4</span>
+          <div class="step-content">
+            Click "Send Message"
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">5</span>
+          <div class="step-content">
+            <strong>Observe:</strong> No success/error message is shown. The form remains unchanged. No validation error for the empty Message field.
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/contact-result.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/contact-result.png" alt="Result">
+                <div class="thumb-label">contact-result.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ISSUE-005 -->
+  <div class="issue-card" id="issue-005">
+    <div class="issue-header" onclick="toggle('issue-005')">
+      <span class="issue-number">ISSUE-005</span>
+      <span class="issue-title">Quick View button does nothing — JS error "productModal is not defined"</span>
+      <span class="severity-pill high">High</span>
+      <span class="category-pill">functional / console</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="issue-body">
+      <div class="meta-grid">
+        <div class="meta-item"><div class="label">URL</div><div class="value"><a href="http://localhost:3000/app/">localhost:3000/app/</a></div></div>
+        <div class="meta-item"><div class="label">Repro Video</div><div class="value">issue-005-repro.webm</div></div>
+        <div class="meta-item"><div class="label">JS Error</div><div class="value"><code style="font-family:monospace;font-size:0.82rem;color:#f0a500">productModal is not defined</code></div></div>
+      </div>
+
+      <div class="section-label">Description</div>
+      <div class="description">
+        Clicking any "Quick View" button on the home page produces no modal or product detail overlay. The browser console shows a JavaScript error: <code>productModal is not defined</code>. The feature is completely non-functional — the modal element is either missing from the DOM or the variable referencing it was never initialized.
+      </div>
+
+      <div class="section-label">Repro Video</div>
+      <div class="media-row">
+        <div class="video-block">
+          <video controls>
+            <source src="http://localhost:3000/dogfood-output/videos/issue-005-repro.webm" type="video/webm">
+          </video>
+          <div class="video-label">issue-005-repro.webm</div>
+        </div>
+      </div>
+
+      <div class="section-label">Repro Steps</div>
+      <ol class="repro-steps">
+        <li class="repro-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            Navigate to localhost:3000/app/ — observe "Quick View" buttons on each product card
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-005-step-1.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-005-step-1.png" alt="Step 1">
+                <div class="thumb-label">issue-005-step-1.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            Click the "Quick View" button on the first product (Terminal Pro License)
+          </div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <strong>Observe:</strong> No modal or overlay appears. The page is unchanged. Console shows: <code>productModal is not defined</code>
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-005-result.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-005-result.png" alt="Result">
+                <div class="thumb-label">issue-005-result.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ISSUE-006 -->
+  <div class="issue-card" id="issue-006">
+    <div class="issue-header" onclick="toggle('issue-006')">
+      <span class="issue-number">ISSUE-006</span>
+      <span class="issue-title">Persistent 404 errors for resources on every page load</span>
+      <span class="severity-pill medium">Medium</span>
+      <span class="category-pill">console</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="issue-body">
+      <div class="meta-grid">
+        <div class="meta-item"><div class="label">URL</div><div class="value">All pages (localhost:3000/app/*)</div></div>
+        <div class="meta-item"><div class="label">Repro Video</div><div class="value">N/A</div></div>
+      </div>
+
+      <div class="section-label">Description</div>
+      <div class="description">
+        Every page load produces multiple "Failed to load resource: the server responded with a status of 404 (Not Found)" errors in the browser console. These appear consistently on all pages tested (home, cart, contact). The missing resources are likely CSS, JS, or image assets that the pages reference but the server cannot find. While the app visually appears functional, these errors indicate broken asset references that could degrade performance or cause missing functionality.
+      </div>
+
+      <div class="section-label">Repro Steps</div>
+      <ol class="repro-steps">
+        <li class="repro-step">
+          <span class="step-num">1</span>
+          <div class="step-content">Open browser DevTools console and navigate to localhost:3000/app/</div>
+        </li>
+        <li class="repro-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <strong>Observe:</strong> Multiple 404 errors appear in the console for failed resource loads — present on every page visit
+            <div class="media-row">
+              <div class="screenshot-thumb" onclick="openLightbox('http://localhost:3000/dogfood-output/screenshots/issue-006-step-1.png')">
+                <img src="http://localhost:3000/dogfood-output/screenshots/issue-006-step-1.png" alt="Result">
+                <div class="thumb-label">issue-006-step-1.png</div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+</main>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+  function toggle(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+
+</body>
+</html>
