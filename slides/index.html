@@ -231,7 +231,7 @@
       <p style="font-size:0.7em;">Claude Code can already browse the web. So can we just ask it to QA our app?</p>
       <pre class="fragment"><code class="language-bash">claude "Please test my app at http://localhost:3000 and find any bugs"</code></pre>
       <div class="fragment callout">
-        You can. But <em>how</em> it browses matters enormously — for reliability, cost, and whether it finishes at all.
+        You can. But <em>how</em> it browses matters enormously — for reliability, cost, and automation.
       </div>
     </section>
 
@@ -263,7 +263,7 @@
           </tr>
           <tr>
             <td><strong>agent-browser</strong> <span class="tag green">3rd party</span></td>
-            <td>ASCII wireframe + element refs</td>
+            <td>Accessibility tree element refs</td>
             <td><code>npm i agent-browser</code></td>
             <td class="good">✓</td>
           </tr>
@@ -309,29 +309,6 @@
       <div class="callout green fragment" style="margin-top:1em; font-size:0.65em;">
         Lower cost per step meant <strong>2× more exploration</strong> in the same context budget —
         plus full repro evidence at no extra navigation cost.
-      </div>
-    </section>
-
-    <!-- ── HOW AGENT-BROWSER WORKS ── -->
-    <section>
-      <h2>How agent-browser sees a page</h2>
-      <p style="font-size:0.65em; color:#94a3b8;">Instead of a screenshot, the model gets this:</p>
-      <div class="wireframe">
-<span class="label">[ ShopLab — Developer Tools Store ]</span>
-
-Nav: <span class="ref">@e1</span> ShopLab  <span class="ref">@e2</span> Shop  <span class="ref">@e3</span> Cart (0)  <span class="ref">@e4</span> Blog  <span class="ref">@e5</span> Contact
-
-<span class="label">[ Hero ]</span>
-  Developer Tools, Shipped Fast
-  Everything you need to build better software.
-  [input <span class="ref">@e6</span> placeholder="Search products..."] [button <span class="ref">@e7</span> "Search"]
-
-<span class="label">[ Featured Products ]</span>
-  Terminal Pro License  $49.00
-  [button <span class="ref">@e8</span> "Add to Cart"] [button <span class="ref">@e9</span> "Quick View"]
-
-  API Monitor  $29.00
-  [button <span class="ref">@e10</span> "Add to Cart"] [button <span class="ref">@e11</span> "Quick View"]
       </div>
     </section>
 
@@ -526,10 +503,6 @@ You are a systematic QA engineer. Given a URL, you will:
           </div>
         </div>
       </div>
-      <div class="callout fragment" style="margin-top:0.75em; font-size:0.6em;">
-        Chrome found the source line immediately (<code>cart.js:66</code>) and a bonus tax UX issue.
-        /dogfood produced a hand-off-ready report with repro evidence — no DevTools required.
-      </div>
     </section>
 
     <!-- ── TOKEN COMPARISON SLIDE ── -->
@@ -606,7 +579,7 @@ triggers:
 # Your instructions here...
 </code></pre>
       <div class="fragment callout" style="font-size:0.6em; margin-top:0.75em;">
-        Publish to the skills registry: <code>npx skills publish</code>
+        Commit to your project for use across team members.
       </div>
     </section>
 
@@ -614,7 +587,7 @@ triggers:
     <section>
       <h2>Key takeaways</h2>
       <ul style="font-size:0.7em; line-height:2.2;">
-        <li><strong>agent-browser</strong> uses ASCII wireframes + element refs — not screenshots</li>
+        <li><strong>agent-browser</strong> element refs — not screenshots</li>
         <li>This makes each page interaction <strong>~35% cheaper</strong> — so longer runs stay within context</li>
         <li><strong>/dogfood</strong> is a skill built on top — point it at any URL</li>
         <li>Skills are agent-agnostic, shareable, and composable</li>
