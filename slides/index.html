@@ -615,6 +615,38 @@ triggers:
       </div>
     </section>
 
+    <!-- ── GITHUB ACTION ── -->
+    <section>
+      <h2>Run it on every PR</h2>
+      <p style="font-size:0.65em; color:#94a3b8; margin-bottom:0.75em;">
+        <code>dogfood-github-action</code> — comment <code>/dogfood</code> on a PR, get a full report back.
+      </p>
+      <div class="two-col" style="align-items:start;">
+        <div>
+          <h3>How it works</h3>
+          <ol class="step-list">
+            <li>Comment <code>/dogfood</code> on any open PR</li>
+            <li>Action polls Vercel for the preview URL</li>
+            <li>Runs Claude in headless mode (<code>claude -p</code>) with agent-browser</li>
+            <li>Posts report + up to 20 screenshots back to the PR</li>
+          </ol>
+        </div>
+        <div>
+          <h3>Setup</h3>
+          <pre style="font-size:0.5em;"><code class="language-bash"># 1. Copy workflow
+cp action .github/workflows/dogfood.yml
+
+# 2. Add secrets
+ANTHROPIC_API_KEY
+PREVIEW_TEST_USER_EMAIL
+PREVIEW_TEST_USER_PASSWORD</code></pre>
+          <div class="callout green" style="font-size:0.6em; margin-top:0.75em;">
+            github.com/jacobsmith/dogfood-github-action
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ── TAKEAWAYS ── -->
     <section>
       <h2>Key takeaways</h2>
