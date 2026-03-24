@@ -271,6 +271,38 @@
       </table>
     </section>
 
+    <!-- ── AGENT-BROWSER ARCHITECTURE ── -->
+    <section>
+      <h2>Under the hood: agent-browser</h2>
+      <p style="font-size:0.65em; color:#94a3b8; margin-bottom:0.75em;">A Rust CLI that wraps Chrome — and keeps it alive between commands.</p>
+      <div class="two-col" style="align-items:start;">
+        <div>
+          <h3>What it is</h3>
+          <ul style="font-size:0.65em; line-height:2;">
+            <li>Rust binary — fast startup, no Node runtime</li>
+            <li>Drives Chrome via the CDP protocol</li>
+            <li>Exposes a <strong>persistent session</strong> over a local socket</li>
+            <li>Each CLI call talks to the <em>same running browser</em></li>
+          </ul>
+        </div>
+        <div>
+          <h3>How /dogfood uses it</h3>
+          <pre style="font-size:0.5em;"><code class="language-bash"># Session starts once
+agent-browser open https://app.com
+
+# Every subsequent call reuses it —
+# same tab, same cookies, same state
+agent-browser snapshot -i
+agent-browser click @e4
+agent-browser screenshot --annotate
+agent-browser errors</code></pre>
+        </div>
+      </div>
+      <div class="fragment callout" style="font-size:0.6em; margin-top:0.75em;">
+        No browser cold-start per step. The model issues commands against a live, stateful session — exactly like a human sitting at the keyboard.
+      </div>
+    </section>
+
     <!-- ── THE TOKEN PROBLEM ── -->
     <section>
       <h2>Efficiency = coverage</h2>
