@@ -688,6 +688,58 @@ PREVIEW_TEST_USER_PASSWORD</code></pre>
   </div>
 </div>
 
+<!-- ── THEME SETTINGS PANEL ── -->
+<button id="settings-toggle" title="Theme settings" style="
+  position: fixed; bottom: 16px; left: 16px; z-index: 9999;
+  background: rgba(30,30,40,0.85); border: 1px solid rgba(255,255,255,0.15);
+  color: #d1d5db; font-size: 1.25rem; width: 2.4rem; height: 2.4rem;
+  border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; backdrop-filter: blur(6px);
+  transition: background 0.2s;
+">⚙️</button>
+
+<div id="settings-panel" style="
+  display: none; position: fixed; bottom: 60px; left: 16px; z-index: 9999;
+  background: rgba(15,23,42,0.97); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 1rem 1.25rem; width: 260px;
+  backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  font-family: system-ui, sans-serif; font-size: 13px; color: #d1d5db;
+">
+  <div style="font-weight:700; margin-bottom:0.75rem; font-size:14px; color:#fff;">Theme settings</div>
+
+  <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <span>Slide background</span>
+    <input type="color" id="cp-bg" value="#191919">
+  </label>
+  <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <span>Body text</span>
+    <input type="color" id="cp-text" value="#e2e8f0">
+  </label>
+  <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <span>Accent (blue)</span>
+    <input type="color" id="cp-accent" value="#60a5fa">
+  </label>
+  <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <span>Accent 2 (green)</span>
+    <input type="color" id="cp-accent2" value="#34d399">
+  </label>
+  <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <span>Warning (yellow)</span>
+    <input type="color" id="cp-warn" value="#fbbf24">
+  </label>
+  <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <span>Danger (red)</span>
+    <input type="color" id="cp-danger" value="#f87171">
+  </label>
+
+  <hr style="border-color:rgba(255,255,255,0.1); margin:0.75rem 0;">
+
+  <button id="settings-reset" style="
+    width:100%; padding:0.4rem; border-radius:6px; border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.07); color:#d1d5db; cursor:pointer; font-size:12px;
+  ">Reset to defaults</button>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
@@ -699,6 +751,58 @@ PREVIEW_TEST_USER_PASSWORD</code></pre>
     slideNumber: 'c/t',
     transition: 'slide',
     plugins: [ RevealHighlight, RevealNotes ]
+  });
+</script>
+<script>
+  const DEFAULTS = {
+    'cp-bg':      '#191919',
+    'cp-text':    '#e2e8f0',
+    'cp-accent':  '#60a5fa',
+    'cp-accent2': '#34d399',
+    'cp-warn':    '#fbbf24',
+    'cp-danger':  '#f87171',
+  };
+
+  const CSS_VARS = {
+    'cp-bg':      (v) => { document.querySelector('.reveal-viewport').style.background = v; },
+    'cp-text':    (v) => { document.documentElement.style.setProperty('--r-main-color', v); },
+    'cp-accent':  (v) => { document.documentElement.style.setProperty('--accent', v); },
+    'cp-accent2': (v) => { document.documentElement.style.setProperty('--accent2', v); },
+    'cp-warn':    (v) => { document.documentElement.style.setProperty('--warn', v); },
+    'cp-danger':  (v) => { document.documentElement.style.setProperty('--danger', v); },
+  };
+
+  // Load saved values
+  Object.keys(DEFAULTS).forEach(id => {
+    const saved = localStorage.getItem('theme-' + id);
+    const val = saved || DEFAULTS[id];
+    document.getElementById(id).value = val;
+    CSS_VARS[id](val);
+  });
+
+  // Wire up pickers
+  Object.keys(CSS_VARS).forEach(id => {
+    document.getElementById(id).addEventListener('input', e => {
+      CSS_VARS[id](e.target.value);
+      localStorage.setItem('theme-' + id, e.target.value);
+    });
+  });
+
+  // Toggle panel
+  const toggle = document.getElementById('settings-toggle');
+  const panel  = document.getElementById('settings-panel');
+  toggle.addEventListener('click', () => {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') panel.style.display = 'none'; });
+
+  // Reset
+  document.getElementById('settings-reset').addEventListener('click', () => {
+    Object.keys(DEFAULTS).forEach(id => {
+      document.getElementById(id).value = DEFAULTS[id];
+      CSS_VARS[id](DEFAULTS[id]);
+      localStorage.removeItem('theme-' + id);
+    });
   });
 </script>
 </body>
