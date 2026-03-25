@@ -303,6 +303,20 @@ agent-browser errors</code></pre>
       </div>
     </section>
 
+    <section>
+      <h2>What /dogfood does in practice</h2>
+      <ol class="step-list">
+        <li>Opens a browser session and orients on the starting URL</li>
+        <li>Maps the site structure — all nav links and primary routes</li>
+        <li>Exercises every interactive element: forms, buttons, inputs</li>
+        <li>Uses realistic-looking data (not "aaa", "test@test.com")</li>
+        <li>Reads the console errors log after each interaction</li>
+        <li>Takes annotated screenshots for anything suspicious</li>
+        <li>Retries each potential bug to confirm reproducibility</li>
+        <li>Writes a structured markdown report with repro steps + evidence</li>
+      </ol>
+    </section>
+
     <!-- ── THE TOKEN PROBLEM ── -->
     <section>
       <h2>Efficiency = coverage</h2>
@@ -410,20 +424,6 @@ You are a systematic QA engineer. Given a URL, you will:
 4. For each issue found, retry at least once to confirm it's reproducible
 5. Write a markdown bug report to ./dogfood-report.md
 ...</code></pre>
-    </section>
-
-    <section>
-      <h2>What /dogfood does in practice</h2>
-      <ol class="step-list">
-        <li>Opens a browser session and orients on the starting URL</li>
-        <li>Maps the site structure — all nav links and primary routes</li>
-        <li>Exercises every interactive element: forms, buttons, inputs</li>
-        <li>Uses realistic-looking data (not "aaa", "test@test.com")</li>
-        <li>Reads the console errors log after each interaction</li>
-        <li>Takes annotated screenshots for anything suspicious</li>
-        <li>Retries each potential bug to confirm reproducibility</li>
-        <li>Writes a structured markdown report with repro steps + evidence</li>
-      </ol>
     </section>
 
     <!-- ── LIVE DEMO ── -->
