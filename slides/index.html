@@ -705,7 +705,14 @@ PREVIEW_TEST_USER_PASSWORD</code></pre>
   backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   font-family: system-ui, sans-serif; font-size: 13px; color: #d1d5db;
 ">
-  <div style="font-weight:700; margin-bottom:0.75rem; font-size:14px; color:#fff;">Theme settings</div>
+  <div style="font-weight:700; margin-bottom:0.6rem; font-size:14px; color:#fff;">Theme settings</div>
+
+  <div style="margin-bottom:0.75rem;">
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#6b7280; margin-bottom:0.4rem;">Presets</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.35rem;" id="preset-buttons"></div>
+  </div>
+
+  <hr style="border-color:rgba(255,255,255,0.1); margin:0.6rem 0;">
 
   <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
     <span>Slide background</span>
@@ -754,6 +761,39 @@ PREVIEW_TEST_USER_PASSWORD</code></pre>
   });
 </script>
 <script>
+  const PRESETS = [
+    {
+      name: 'Dark (default)',
+      bg: '#191919', text: '#e2e8f0',
+      accent: '#60a5fa', accent2: '#34d399', warn: '#fbbf24', danger: '#f87171',
+    },
+    {
+      name: 'High Contrast',
+      bg: '#000000', text: '#ffffff',
+      accent: '#38bdf8', accent2: '#4ade80', warn: '#facc15', danger: '#f87171',
+    },
+    {
+      name: 'Light Room',
+      bg: '#f8fafc', text: '#0f172a',
+      accent: '#2563eb', accent2: '#059669', warn: '#d97706', danger: '#dc2626',
+    },
+    {
+      name: 'Navy',
+      bg: '#0f172a', text: '#e2e8f0',
+      accent: '#93c5fd', accent2: '#6ee7b7', warn: '#fcd34d', danger: '#fca5a5',
+    },
+    {
+      name: 'Warm Dark',
+      bg: '#1c1410', text: '#fef3c7',
+      accent: '#fb923c', accent2: '#a3e635', warn: '#facc15', danger: '#f87171',
+    },
+    {
+      name: 'Slate',
+      bg: '#1e293b', text: '#cbd5e1',
+      accent: '#7dd3fc', accent2: '#86efac', warn: '#fde68a', danger: '#fca5a5',
+    },
+  ];
+
   const DEFAULTS = {
     'cp-bg':      '#191919',
     'cp-text':    '#e2e8f0',
@@ -786,6 +826,24 @@ PREVIEW_TEST_USER_PASSWORD</code></pre>
       CSS_VARS[id](e.target.value);
       localStorage.setItem('theme-' + id, e.target.value);
     });
+  });
+
+  // Build preset buttons
+  const presetMap = { bg:'cp-bg', text:'cp-text', accent:'cp-accent', accent2:'cp-accent2', warn:'cp-warn', danger:'cp-danger' };
+  const presetContainer = document.getElementById('preset-buttons');
+  PRESETS.forEach(preset => {
+    const btn = document.createElement('button');
+    btn.textContent = preset.name;
+    btn.style.cssText = 'padding:0.35rem 0.4rem; border-radius:5px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#d1d5db; cursor:pointer; font-size:11px; text-align:left;';
+    btn.addEventListener('click', () => {
+      Object.entries(presetMap).forEach(([key, id]) => {
+        const val = preset[key];
+        document.getElementById(id).value = val;
+        CSS_VARS[id](val);
+        localStorage.setItem('theme-' + id, val);
+      });
+    });
+    presetContainer.appendChild(btn);
   });
 
   // Toggle panel
