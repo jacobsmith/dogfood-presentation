@@ -1,6 +1,6 @@
 # Let Claude Break Your App: Automated QA with /dogfood
 
-Presentation materials for a community talk on the [`/dogfood`](https://github.com/vercel-labs/agent-browser) skill from vercel-labs — a Claude Code skill that turns your AI assistant into a systematic QA tester for your web app.
+Presentation materials for a community talk on the [`/dogfood`](https://github.com/vercel-labs/agent-browser/tree/main/skills/dogfood) skill from vercel-labs — a Claude Code skill that turns your AI assistant into a systematic QA tester for your web app.
 
 ## What's in this repo
 
